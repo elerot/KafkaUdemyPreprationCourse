@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DockerCompose", "DockerCompose", "{51AF0337-8F1E-4D88-BB10-A592DA9EF45E}"
 	ProjectSection(SolutionItems) = preProject
 		docker-compose.yml = docker-compose.yml
+		docker-compose-with-zookeeper.yml = docker-compose-with-zookeeper.yml
 		readme.txt = readme.txt
 	EndProjectSection
 EndProject
