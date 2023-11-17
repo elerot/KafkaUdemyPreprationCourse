@@ -5,14 +5,19 @@ VisualStudioVersion = 17.5.33209.295
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DockerCompose", "DockerCompose", "{51AF0337-8F1E-4D88-BB10-A592DA9EF45E}"
 	ProjectSection(SolutionItems) = preProject
-		docker-compose.yml = docker-compose.yml
 		docker-compose-with-zookeeper.yml = docker-compose-with-zookeeper.yml
+		docker-compose.yml = docker-compose.yml
 		readme.txt = readme.txt
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KafkaProducer", "KafkaProducer\KafkaProducer.csproj", "{BB58A1E5-1E93-4CDA-9A7C-7F98D59ADC3F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KafkaConsumer", "KafkaConsumer\KafkaConsumer.csproj", "{E12B76AC-BB8F-42AA-AABE-F321168DD0E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{65B3F41F-4D93-4C5C-AA3B-99F8319D7678}"
+	ProjectSection(SolutionItems) = preProject
+		lesson.txt = lesson.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
