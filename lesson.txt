@@ -6,3 +6,8 @@ create topic
 - kafka-console-producer.sh --producer.config /opt/bitnami/kafka/config/producer.properties --bootstrap-server 127.0.0.1:9092 --topic test
 read from toic
 - kafka-console-consumer.sh --consumer.config /opt/bitnami/kafka/config/consumer.properties --bootstrap-server 127.0.0.1:9092 --topic test --from-beginning
+
+
+create topic ( with direct kafka)
+replication-factor must be 1 because of one broker
+- /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 3 --topic test6factor3partition

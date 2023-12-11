@@ -1,18 +1,23 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Confluent.Kafka;
+using KafkaConsumer.Events;
 
 Console.WriteLine("Message is reading");
 
 var config = new ConsumerConfig
 {
-    BootstrapServers = "localhost:9092",
+    BootstrapServers = "localhost:9094",
     GroupId = "mygroup-l",
     AutoOffsetReset = AutoOffsetReset.Earliest,
     EnableAutoCommit = false
 };
 
-var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
-consumer.Subscribe("mytopic");
+//var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
+
+var consumer = new ConsumerBuilder<int, OrderCreatedEvent>(config)
+    .SetValueDeserializer(new CustomValueDeSerializer<OrderCreatedEvent>())
+    .Build();
+consumer.Subscribe("topic.with.type");
 
 while (true)
 {
