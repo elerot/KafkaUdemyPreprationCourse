@@ -1,15 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Diagnostics;
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
-using KafkaProducer;
-using KafkaProducer.Events;
 
 Console.WriteLine("Producer");
-string topicName = "topic.with.type3";
+var topicName = "topic-at-least-one";
 await CreateTopic();
-await SendMessageWithAck();
+await SendWithAtLeastOneSemantic();
+Console.WriteLine("message has send to topic");
 
 async Task CreateTopic()
 {
@@ -28,161 +26,48 @@ async Task CreateTopic()
     }
 }
 
-async Task SendMessageWithNullKey()
+
+Task SendWithAtMostOneSemantic()
 {
-    var config = new ProducerConfig { BootstrapServers = "localhost:9094" };
-
-    using var producer = new ProducerBuilder<Null, string>(config).Build();
-
-    foreach (var item in Enumerable.Range(1, 100).ToList())
+    var config = new ProducerConfig
     {
-        var result = await producer.ProduceAsync("mytopicwithkey",
-            new Message<Null, string> { Value = $"a log message {item}", Timestamp = Timestamp.Default });
-
-        foreach (var propertyInfo in result.GetType().GetProperties())
-            Console.WriteLine($"{propertyInfo.Name} = {propertyInfo.GetValue(result)}");
-        Console.WriteLine("---------------");
-        await Task.Delay(500);
-    }
-}
-
-async Task SendMessageWithKey()
-{
-    var config = new ProducerConfig { BootstrapServers = "localhost:9094" };
+        BootstrapServers = "localhost:9094",
+        MessageSendMaxRetries = 0, //  retry must be 0 for at most one
+        Acks = Acks.All // configuration can change according to your needs
+    };
 
     using var producer = new ProducerBuilder<int, string>(config).Build();
 
-    foreach (var item in Enumerable.Range(1, 10).ToList())
-    {
-        var result = await producer.ProduceAsync("mytopicwithkey",
-            new Message<int, string> { Key = item, Value = $"a log message {item}", Timestamp = Timestamp.Default });
 
-        foreach (var propertyInfo in result.GetType().GetProperties())
-            Console.WriteLine($"{propertyInfo.Name} = {propertyInfo.GetValue(result)}");
-        Console.WriteLine("---------------");
-        await Task.Delay(500);
-    }
+    //1.step  record to database
+
+    //2.step send to kafka message
+
+    producer.ProduceAsync(topicName,
+        new Message<int, string> { Key = 1, Value = "a  1. message", Timestamp = Timestamp.Default }).ContinueWith(x =>
+    {
+        // handle error
+        Console.WriteLine(x.Result.Value);
+    });
+
+    return Task.CompletedTask;
 }
 
-async Task SendMessageWithPartitionName()
+
+async Task SendWithAtLeastOneSemantic()
 {
-    var config = new ProducerConfig { BootstrapServers = "localhost:9094" };
+    var config = new ProducerConfig
+    {
+        BootstrapServers = "localhost:9094",
+        MessageSendMaxRetries = 10, //  retry must be different from 0 for at least one
+        Acks = Acks.All // configuration can change according to your needs
+    };
 
     using var producer = new ProducerBuilder<int, string>(config).Build();
 
-    foreach (var item in Enumerable.Range(1, 10).ToList())
-    {
-        var topicPart = new TopicPartition("mytopicwithkey", new Partition(7));
+    //1.step send to kafka message
+    await producer.ProduceAsync(topicName,
+        new Message<int, string> { Key = 1, Value = "a  1.message", Timestamp = Timestamp.Default });
 
-        var result = await producer.ProduceAsync(topicPart,
-            new Message<int, string> { Key = item, Value = $"a log message {item}", Timestamp = Timestamp.Default });
-
-        foreach (var propertyInfo in result.GetType().GetProperties())
-            Console.WriteLine($"{propertyInfo.Name} = {propertyInfo.GetValue(result)}");
-        Console.WriteLine("---------------");
-        await Task.Delay(500);
-    }
-}
-
-async Task SendMessageWithType()
-{
-
-    var config = new ProducerConfig { BootstrapServers = "localhost:9094" };
-
-    using var producer = new ProducerBuilder<int, OrderCreatedEvent>(config)
-        .SetValueSerializer(new CustomValueSerializer<OrderCreatedEvent>())
-        .Build();
-
-    foreach (var item in Enumerable.Range(1, 10).ToList())
-    {
-
-
-        var message = new Message<int, OrderCreatedEvent>
-        {
-            Key = 10,
-            Value = new OrderCreatedEvent() { OrderCode = "abc", TotalPrice = 100, UserId = 10 }
-        };
-
-
-
-        var result = await producer.ProduceAsync("topic.with.type", message);
-
-
-        foreach (var propertyInfo in result.GetType().GetProperties())
-            Console.WriteLine($"{propertyInfo.Name} = {propertyInfo.GetValue(result)}");
-        Console.WriteLine("---------------");
-        await Task.Delay(500);
-    }
-}
-
-async Task AsyncSendMessageWithType()
-{
-
-    var config = new ProducerConfig { BootstrapServers = "localhost:9094" };
-
-    using var producer = new ProducerBuilder<int, OrderCreatedEvent>(config)
-        .SetValueSerializer(new CustomValueSerializer<OrderCreatedEvent>())
-        .Build();
-
-    foreach (var item in Enumerable.Range(1, 100).ToList())
-    {
-
-
-        var message = new Message<int, OrderCreatedEvent>
-        {
-            Key = item,
-            Value = new OrderCreatedEvent() { OrderCode = "abc", TotalPrice = 100, UserId = 10 }
-        };
-
-
-        producer.Produce(topicName, message, report =>
-        {
-            Console.WriteLine($"Message Key :{report.Key}");
-            Console.WriteLine($"Error Reason :{report.Error.Reason}");
-            Console.WriteLine($"Persistent Status :{report.Status}");
-
-            Console.WriteLine("---------------");
-        });
-        
-
-
-       
-    }
-
-    Console.ReadLine();
-}
-
-
-async Task SendMessageWithAck()
-{
-
-    //Default Ack=1'dir.
-    var config = new ProducerConfig { BootstrapServers = "localhost:9094" ,Acks = Acks.Leader};
-
-    using var producer = new ProducerBuilder<int, OrderCreatedEvent>(config)
-        .SetValueSerializer(new CustomValueSerializer<OrderCreatedEvent>())
-        .Build();
-    var timer = Stopwatch.StartNew();
-    foreach (var item in Enumerable.Range(1, 10).ToList())
-    {
-
-
-        var message = new Message<int, OrderCreatedEvent>
-        {
-            Key = 10,
-            Value = new OrderCreatedEvent() { OrderCode = "abc", TotalPrice = 100, UserId = 10 }
-        };
-
-        //producer.ProduceAsync(topicName, message);
-
-        var result = await producer.ProduceAsync(topicName, message);
-
-        foreach (var propertyInfo in result.GetType().GetProperties())
-            Console.WriteLine($"{propertyInfo.Name} = {propertyInfo.GetValue(result)}");
-        Console.WriteLine("---------------");
-
-    }
-    timer.Stop();
-    Console.WriteLine($"Elapsed Time:{timer.ElapsedMilliseconds}");
-    Console.Read();
+    //2.step  record to database
 }
